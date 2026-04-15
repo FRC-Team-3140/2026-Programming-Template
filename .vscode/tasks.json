@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "WPILib: Build Robot Code",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "YEAR=$(grep 'edu.wpi.first.GradleRIO' build.gradle | sed -E 's/.*version \"([0-9]+).*/\\1/'); JDK_PATH=$(eval echo \"~/wpilib/$YEAR/jdk\"); echo \"Using JDK: $JDK_PATH\"; ./gradlew build -Dorg.gradle.java.home=\"$JDK_PATH\""
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "WPILib: Deploy Robot Code",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "YEAR=$(grep 'edu.wpi.first.GradleRIO' build.gradle | sed -E 's/.*version \"([0-9]+).*/\\1/'); JDK_PATH=$(eval echo \"~/wpilib/$YEAR/jdk\"); echo \"Using JDK: $JDK_PATH\"; ./gradlew deploy -Dorg.gradle.java.home=\"$JDK_PATH\""
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "WPILib: Simulate Robot Code",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "YEAR=$(grep 'edu.wpi.first.GradleRIO' build.gradle | sed -E 's/.*version \"([0-9]+).*/\\1/'); JDK_PATH=$(eval echo \"~/wpilib/$YEAR/jdk\"); echo \"Using JDK: $JDK_PATH\"; ./gradlew simulateJavaRelease -Dorg.gradle.java.home=\"$JDK_PATH\""
+      ],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "WPILib: Build and Simulate Robot Code",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "YEAR=$(grep 'edu.wpi.first.GradleRIO' build.gradle | sed -E 's/.*version \"([0-9]+).*/\\1/'); JDK_PATH=$(eval echo \"~/wpilib/$YEAR/jdk\"); echo \"Using JDK: $JDK_PATH\"; ./gradlew build -Dorg.gradle.java.home=\"$JDK_PATH\" && ./gradlew simulateJavaRelease -Dorg.gradle.java.home=\"$JDK_PATH\""
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    }
+  ]
+}

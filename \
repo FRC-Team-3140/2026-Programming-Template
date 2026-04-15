@@ -32,10 +32,10 @@ public final class Constants {
     public static final class Offsets {
       public static final class Translation {
         // TODO: Update these to match the real Swerve Drive offsets
-        public static final Translation2d frontLeft = new Translation2d(Units.inchesToMeters(12), Units.inchesToMeters(12));
-        public static final Translation2d frontRight = new Translation2d(Units.inchesToMeters(12), Units.inchesToMeters(-12));
-        public static final Translation2d backLeft = new Translation2d(Units.inchesToMeters(-12), Units.inchesToMeters(12));
-        public static final Translation2d backRight = new Translation2d(Units.inchesToMeters(-12), Units.inchesToMeters(-12));
+        public static final Translation2d frontLeft = new Translation2d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0));
+        public static final Translation2d frontRight = new Translation2d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0));
+        public static final Translation2d backLeft = new Translation2d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0));
+        public static final Translation2d backRight = new Translation2d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0));
       }
       public static final class Rotation {
         // TODO: Update these angles to match the swerve drive's zeroed angle
@@ -47,10 +47,7 @@ public final class Constants {
     }
     public static final class Ratios {
       public static final double driveRatio = 1 / 6.75 / 1.14; // L2 swerve + pinion conversion kit
-      public static final double steerGearRatio = 150 / 7;
     }
-    public static final double maxSpeed = Units.feetToMeters(16); // m / s
-    public static final double maxRot = 1; // rads / sec
   }
 
   public static final class CurrentLimits {
