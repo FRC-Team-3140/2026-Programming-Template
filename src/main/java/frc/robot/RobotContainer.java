@@ -6,7 +6,8 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
-import frc.robot.subsystems.swervedrive.SwerveDrive;
+import frc.robot.subsystems.drivetrain.SwerveDrive;
+import frc.robot.subsystems.drivetrain.Vision;
 import frc.robot.subsystems.ControllerSubsystem;
 
 /**
@@ -20,9 +21,9 @@ public class RobotContainer {
   // Creating subsystems
   public static final ControllerSubsystem ControllerSubsystem = new ControllerSubsystem();
   public static final SwerveDrive swerveDrive = new SwerveDrive();
+  public static final Vision vision = new Vision();
 
-  public RobotContainer() {
-  }
+  public RobotContainer() {}
 
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous

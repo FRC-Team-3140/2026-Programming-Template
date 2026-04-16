@@ -8,7 +8,6 @@ public final class Constants {
     public static final boolean useLinuxControlScheme = Robot.isSimulation();
   }
 
-
   public static final class MotorIDs {
     public static final int frontLeftDrive = 1;
     public static final int frontLeftTurn = 2;
@@ -26,7 +25,6 @@ public final class Constants {
     public static final int backLeftTurnEncoder = 2;
     public static final int backRightTurnEncoder = 3;
   }
-
 
   public static final class SwerveDrive {
     public static final class Offsets {
