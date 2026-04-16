@@ -78,7 +78,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void teleopInit() {
-    RobotContainer.swerveDrive.setDefaultCommand(SwerveDrive.controllerDriveCommand());
+    RobotContainer.swerveDrive.setDefaultCommand(SwerveDrive.SwerveCommands.controllerDriveCommand());
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }

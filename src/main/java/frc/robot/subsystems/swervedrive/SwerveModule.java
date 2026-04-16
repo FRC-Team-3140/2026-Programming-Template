@@ -1,5 +1,7 @@
 package frc.robot.subsystems.swervedrive;
 
+import java.awt.Robot;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkFlexSim;
@@ -19,102 +21,114 @@ import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.simulation.AnalogEncoderSim;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class SwerveModule extends SubsystemBase {
-  private static final double STEER_IDLE_SPEED_THRESHOLD_MPS = 0.05;
 
+  // This is the drive vortext motor
   private SparkFlex driveMotor;
+  // This is a simulated motor that allows the swerve to work in sim
   public SparkFlexSim driveMotorSim;
 
+  // This is the turning neo motor
   private SparkMax turnMotor;
+  // This is a simulated motor that allows the swerve to work in sim
   public SparkMaxSim turnMotorSim;
 
-  private double angleOffset = 0;
+  // This is the offset of the turning encoder
+  private double angleOffset;
 
+  // This is the encoder on the top of the swerve drive
   public AnalogEncoder turnEncoder;
+  // This simulates the encoder
   public AnalogEncoderSim turnEncoderSim;
 
-  private PIDController turningPIDController = new PIDController(0.03, 0, 0.0002);
+  // This PID calculats how to drive the turning motor to get to the angle setpoint
+  private PIDController turningPIDController = new PIDController(0.01, 0, 0.0002);
 
+  // These are conversion factors for different ratios
   private final double metersPerMotorRotation =
       2 * Math.PI * Units.inchesToMeters(2) * Constants.SwerveDrive.Ratios.driveRatio;
   private final double motorRotationsPerMinutePerMetersPerSecond = 60.0 / metersPerMotorRotation;
-  private Rotation2d lastTargetAngle = new Rotation2d();
-  private boolean angleSetpointInitialized = false;
+
 
   public SwerveModule(int driveMotorID, int turnMotorID, int turnEncoderID, boolean driveMotorInverted, double angleOffset) {
+    // This creates the real motors
     driveMotor = new SparkFlex(driveMotorID, SparkFlex.MotorType.kBrushless);
     turnMotor = new SparkMax(turnMotorID, SparkMax.MotorType.kBrushless);
 
+    // This creates the real encoder
     turnEncoder = new AnalogEncoder(turnEncoderID);
 
+    // To configure the motors, we first create a config object
     SparkFlexConfig config = new SparkFlexConfig();
+
+    // We then configure the object to have different configurations
+    // Both motors should be in break mode, so they stop when the bot is disabled.
     config.idleMode(IdleMode.kBrake);
 
+    // This is the config for the  turn motor. It shouldn't be inverted, and it has a configurable current limit defined in constants
     config.inverted(false).smartCurrentLimit(Constants.CurrentLimits.SwerveDrive.turnMotorCurrentLimit);
+    // This applies the config to the turn motor
     turnMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-    config.closedLoop.p(0.00008).i(0).d(0).feedForward.sva(0.1, 0.0014, 0);
-    config.inverted(driveMotorInverted).smartCurrentLimit(Constants.CurrentLimits.SwerveDrive.driveMotorCurrentLimit);
 
-    // 2 * pi * r (4 inch wheels)
-    // * drive ratio
+    // The drive motor uses the internal encoder, so we can use the PID controller that is built into the sparkmax
+    // This is more accurate than an onboard PID controller, as it updates 1000x a second, the rio only updates 50 times a second.
+    // There is also a feedForward that helps overcome static friction
+    config.closedLoop.p(0.00008).i(0).d(0).feedForward.sva(0.1, 0.0014, 0);
+    // This is the config for the drive motor. It may be inverted, and it has a configurable current limit defined in constants
+    config.inverted(driveMotorInverted).smartCurrentLimit(Constants.CurrentLimits.SwerveDrive.driveMotorCurrentLimit);
+    // The internal encoder is updated with the conversion factor, so all reads of the encoder's position result in linear meters that the wheel would travel.
     config.encoder.positionConversionFactor(metersPerMotorRotation);
+    // This applies the config to the drive motor
     driveMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
     this.angleOffset = angleOffset;
 
+    // The motors and encoder sims are created to control the real motors when in simulation
+    // This means we can write all of the code to use the real motors, and the sim motors will act as hardware
     driveMotorSim = new SparkFlexSim(driveMotor, DCMotor.getNeoVortex(1));
     turnMotorSim = new SparkMaxSim(turnMotor, DCMotor.getNEO(1));
     turnEncoderSim = new AnalogEncoderSim(turnEncoder);
 
+    // This lets the module's PID controlelr wrap around
     turningPIDController.enableContinuousInput(-180, 180);
-    turningPIDController.setTolerance(1.5);
   }
 
+  // This gets the distance traveled by the wheel, using the drive motor's built in encoder
   public double getDistance() {
     return driveMotor.getEncoder().getPosition(); 
   }
 
+  // This gets the velocity of the wheel
   public double getVelocity() {
     return driveMotor.getEncoder().getVelocity() * metersPerMotorRotation / 60.0;
   }
 
+  // This gets the rotation of the module
   public Rotation2d getAngle() {
     return Rotation2d.fromDegrees(turnEncoder.get() * 360 - angleOffset);
   }
 
+  // This takes in a SwerveModuleState and updates the PID setpoints
   public void setState(SwerveModuleState state) {
+    // This optimizes the state of the wheel. 
+    // For example, when reversing driving direction, instead of driving the wheels in one direction and rotating the wheels 180 degress, it just flips the driving direction of the wheels
+    // This prevents unneed angle turns and makes the swervedrive act more naturally
     state.optimize(getAngle());
-    SwerveModuleState optimizedState = state;
 
-    if (!angleSetpointInitialized) {
-      lastTargetAngle = getAngle();
-      angleSetpointInitialized = true;
-    }
-
-    double speedMetersPerSecond = optimizedState.speedMetersPerSecond;
-    if (Math.abs(speedMetersPerSecond) < 0.01) {
-      speedMetersPerSecond = 0.0;
-    }
-
+    // This sets the built in PID and FeedFoward setpoint to the corret speed
     driveMotor.getClosedLoopController().setSetpoint(
-        speedMetersPerSecond * motorRotationsPerMinutePerMetersPerSecond,
+        state.speedMetersPerSecond * motorRotationsPerMinutePerMetersPerSecond,
         SparkFlex.ControlType.kVelocity);
 
-    if (Math.abs(speedMetersPerSecond) > STEER_IDLE_SPEED_THRESHOLD_MPS) {
-      lastTargetAngle = optimizedState.angle;
-    }
-    turningPIDController.setSetpoint(lastTargetAngle.getDegrees());
+    // This sets the rotation setpoint of the wheel
+    turningPIDController.setSetpoint(state.angle.getDegrees());
   }
 
   @Override
   public void periodic() {
-    double currentAngle = MathUtil.inputModulus(getAngle().getDegrees(), -180.0, 180.0);
-    double turnOutput = turningPIDController.calculate(currentAngle);
-    if (turningPIDController.atSetpoint()) {
-      turnOutput = 0.0;
-    }
-    turnMotor.set(MathUtil.clamp(turnOutput, -1.0, 1.0));
+    turnMotor.set(turningPIDController.calculate(getAngle().getDegrees()));
   }
 }
