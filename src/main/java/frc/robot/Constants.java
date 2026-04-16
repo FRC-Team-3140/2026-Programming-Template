@@ -50,7 +50,7 @@ public final class Constants {
       public static final double steerGearRatio = 150 / 7;
     }
     public static final double maxSpeed = Units.feetToMeters(16); // m / s
-    public static final double maxRot = 1; // rads / sec
+    public static final double maxRot = 10; // rads / sec
   }
 
   public static final class CurrentLimits {

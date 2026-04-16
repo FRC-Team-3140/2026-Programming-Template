@@ -76,7 +76,7 @@ public class SwerveModule extends SubsystemBase {
     // The drive motor uses the internal encoder, so we can use the PID controller that is built into the sparkmax
     // This is more accurate than an onboard PID controller, as it updates 1000x a second, the rio only updates 50 times a second.
     // There is also a feedForward that helps overcome static friction
-    config.closedLoop.p(0.00008).i(0).d(0).feedForward.sva(0.1, 0.0014, 0);
+    config.closedLoop.p(0.00008).i(0).d(0).feedForward.sva(0.0, 0.0014, 0);
     // This is the config for the drive motor. It may be inverted, and it has a configurable current limit defined in constants
     config.inverted(driveMotorInverted).smartCurrentLimit(Constants.CurrentLimits.SwerveDrive.driveMotorCurrentLimit);
     // The internal encoder is updated with the conversion factor, so all reads of the encoder's position result in linear meters that the wheel would travel.
@@ -118,7 +118,7 @@ public class SwerveModule extends SubsystemBase {
     // This prevents unneed angle turns and makes the swervedrive act more naturally
     state.optimize(getAngle());
 
-    // This sets the built in PID and FeedFoward setpoint to the corret speed
+    // This sets the built in PID and FeedFoward setpoint to the correct speed
     driveMotor.getClosedLoopController().setSetpoint(
         state.speedMetersPerSecond * motorRotationsPerMinutePerMetersPerSecond,
         SparkFlex.ControlType.kVelocity);
@@ -129,6 +129,7 @@ public class SwerveModule extends SubsystemBase {
 
   @Override
   public void periodic() {
+    // This updates the turn motor with the PID controller's output
     turnMotor.set(turningPIDController.calculate(getAngle().getDegrees()));
   }
 }

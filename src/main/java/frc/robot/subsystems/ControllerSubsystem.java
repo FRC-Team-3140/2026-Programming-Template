@@ -31,7 +31,7 @@ public class ControllerSubsystem extends SubsystemBase {
 
   public static class Controller extends XboxController {
     private double triggerDeadband = 0.5;
-    private double joystickDeadband = 0.1;
+    private double joystickDeadband = 0.15;
 
     public Controller(int port) {
       super(port);

@@ -4,19 +4,13 @@
 
 package frc.robot;
 
-import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.ControllerSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveDrive;
 import frc.robot.subsystems.swervedrive.SwerveModule;
 
@@ -35,10 +29,11 @@ public class Robot extends LoggedRobot {
    * initialization code.
    */
   public Robot() {
-    Logger.recordMetadata("ProjectName", "2026-Programming-Template"); // Set a metadata value
+    // This is the setup for AdvantageKit logging 
     Logger.addDataReceiver(new NT4Publisher());
     Logger.start();
 
+    // This creates the robot container
     m_robotContainer = new RobotContainer();
   }
 
@@ -105,38 +100,53 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {
+    /*  Simulation works by updating each motor simulation every loop.
+     *  The simulated motors update the real motor objects that are used with the real robot.
+     *  This means that the code that runs on the real robot should behave the same in simulation without much extra code.
+     */
+
+    // This is the difference in time between simulation loops
     final double dt = 0.02;
+    // This is the simulated voltage. For simplicity it is locked at 12
     final double vbus = 12.0;
 
     // motor free speeds (RPM)
     final double vortexFreeRPM = 6784.0; // drive (Spark Flex + NEO Vortex)
     final double neoFreeRPM = 5676.0; // steer (Spark MAX + NEO)
 
+    // SwerveDrive Simulation, runs for each module
     for (SwerveModule module : RobotContainer.swerveDrive.swerveModules) {
 
       // --- DRIVE ---
+      // Get the motor output 
       double driveDuty = module.driveMotorSim.getAppliedOutput();
+      // Calculate RPM
       double driveRPM = driveDuty * vortexFreeRPM;
+      // Update the motor sim
       module.driveMotorSim.iterate(driveRPM, vbus, dt);
 
       // --- STEER ---
+      // Same for the turning motor
       double turnDuty = module.turnMotorSim.getAppliedOutput();
       double turnRPM = turnDuty * neoFreeRPM;
       module.turnMotorSim.iterate(turnRPM, vbus, dt);
 
-      // update custom absolute encoder (convert motor rotations → wheel degrees)
+      // Update the analog encoder 
+      // Get the turns of the wheel based on the motor's rotation
       double wheelRotations = module.turnMotorSim.getPosition() / Constants.SwerveDrive.Ratios.steerGearRatio;
-      double encoderTurns = wheelRotations;
-
-      // normalize to [0, 1)
-      encoderTurns = ((encoderTurns % 1) + 1) % 1;
-
-      module.turnEncoderSim.set(encoderTurns);
+      // Clamp between 0 and 1
+      wheelRotations = ((wheelRotations % 1) + 1) % 1;
+      // Updating the encoder sim with the new value
+      module.turnEncoderSim.set(wheelRotations);
     }
 
-    SwerveModuleState[] positions = RobotContainer.swerveDrive.getStates();
-    ChassisSpeeds speeds = RobotContainer.swerveDrive.kinematics.toChassisSpeeds(positions);
+    // Gets the current speed of the robot
+    ChassisSpeeds speeds = RobotContainer.swerveDrive.kinematics.toChassisSpeeds(RobotContainer.swerveDrive.getStates());
+    // Calculates the rotation speed of the bot
     double omegaDegreesPerSecond = Math.toDegrees(speeds.omegaRadiansPerSecond);
+    
+    // Applies the rotation to the simulated and "real" gyro angles
     SwerveDrive.swerveGyro.setSimAngle(SwerveDrive.swerveGyro.getAngle() + omegaDegreesPerSecond * dt);
+    SwerveDrive.swerveGyro.setRealSimAngle(SwerveDrive.swerveGyro.getRealSimAngle() + omegaDegreesPerSecond * dt);
   }
 }
