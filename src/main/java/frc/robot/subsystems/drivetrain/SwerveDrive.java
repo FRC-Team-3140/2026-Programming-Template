@@ -191,18 +191,6 @@ public class SwerveDrive extends SubsystemBase {
     public static Command driveCommmand(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
       return RobotContainer.swerveDrive.run(()->{ RobotContainer.swerveDrive.drive(xSpeed, ySpeed, rot, fieldRelative); });
     }
-
-    // This command uses the controller inputs to drive the robot
-    public static Command controllerDriveCommand() {
-      return RobotContainer.swerveDrive.run(()-> {
-        RobotContainer.swerveDrive.drive(
-            ControllerSubsystem.primaryController.getLeftY(), 
-            ControllerSubsystem.primaryController.getLeftX(),
-            -ControllerSubsystem.primaryController.getRightX(),
-            SwerveDrive.fieldRelative); 
-      });
-    }
-
   }
 
   // The Swerve Module class

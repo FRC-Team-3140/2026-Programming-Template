@@ -1,17 +1,17 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
+import frc.robot.subsystems.drivetrain.SwerveDrive;
 import edu.wpi.first.wpilibj.XboxController;
 
 public class ControllerSubsystem extends SubsystemBase {
-  public static final Controller primaryController = new Controller(0);
-  public static final Controller secondaryController = new Controller(1);
+  private static final Controller primaryController = new Controller(0);
+  private static final Controller secondaryController = new Controller(1);
 
   public static RobotMode currentMode = RobotMode.AUTO;
-
-  public ControllerSubsystem() {}
-
 
 
   // TODO: Update control scheme for the robot here
@@ -47,6 +47,24 @@ public class ControllerSubsystem extends SubsystemBase {
     }
   }
 
+  public static class DefaultCommands {
+    public static Command getSwerveDriveCommand() {
+      return RobotContainer.swerveDrive.run(()-> {
+        RobotContainer.swerveDrive.drive(
+            primaryController.getLeftY(), 
+            primaryController.getLeftX(),
+            -primaryController.getRightX(),
+            SwerveDrive.fieldRelative); 
+      });
+    }
+  }
+
+  interface ControlScheme {
+    public default void init() {};
+    public default void periodic() {};
+    public default void end() {};
+  }
+
   public enum RobotMode {
     MANUAL(new ManualModeScheme()),
     AUTO(new AutoModeScheme());
@@ -66,6 +84,7 @@ public class ControllerSubsystem extends SubsystemBase {
     void end() { end.run(); }
   }
 
+  /// Methods 
   private void checkModeSwitch() {
     if (!(secondaryController.getLeftStickButton() && secondaryController.getRightStickButton())) return;
 
@@ -80,12 +99,11 @@ public class ControllerSubsystem extends SubsystemBase {
 
   }
 
-  interface ControlScheme {
-    public default void init() {};
-    public default void periodic() {};
-    public default void end() {};
-  }
 
+
+  /// Subsystem Methods
+
+  public ControllerSubsystem() {}
 
   @Override
   public void periodic() {
@@ -95,6 +113,12 @@ public class ControllerSubsystem extends SubsystemBase {
 
     universalControls();
   }
+
+
+
+
+
+  /// Controller Mapping
 
   enum AxisMapping {
     LEFT_X(Constants.Config.useLinuxControlScheme ? 0 : 0),

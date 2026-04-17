@@ -11,6 +11,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.ControllerSubsystem.DefaultCommands;
 import frc.robot.subsystems.drivetrain.SwerveDrive;
 import frc.robot.subsystems.drivetrain.SwerveDrive.SwerveModule;
 
@@ -73,7 +74,8 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void teleopInit() {
-    RobotContainer.swerveDrive.setDefaultCommand(SwerveDrive.SwerveCommands.controllerDriveCommand());
+    RobotContainer.swerveDrive.setDefaultCommand(DefaultCommands.getSwerveDriveCommand());
+
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
