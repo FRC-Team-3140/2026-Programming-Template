@@ -29,26 +29,34 @@ import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
 public class Vision extends SubsystemBase {
-  public static AprilTagFieldLayout fieldAprilTags = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+  public static AprilTagFieldLayout fieldAprilTags = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
 
   private VisionSystemSim visionSim;
 
   // TODO: Add Cameras with correct offsets
   public Camera[] cameras = new Camera[] {
-    new Camera("Camera1", new Transform3d(
-          Units.inchesToMeters(0), 
-          Units.inchesToMeters(0), 
-          Units.inchesToMeters(0), 
+    new Camera("Left", new Transform3d(
+          Units.inchesToMeters(-10), 
+          Units.inchesToMeters(10), 
+          Units.inchesToMeters(10), 
           new Rotation3d(
             Units.degreesToRadians(0), 
+            Units.degreesToRadians(10), 
+            Units.degreesToRadians(180-45)))),
+    new Camera("Right", new Transform3d(
+          Units.inchesToMeters(-10), 
+          Units.inchesToMeters(-10), 
+          Units.inchesToMeters(10), 
+          new Rotation3d(
             Units.degreesToRadians(0), 
-            Units.degreesToRadians(0)))),
+            Units.degreesToRadians(10), 
+            Units.degreesToRadians(180+45)))),
   };
 
 
   public Vision() {
     if (Robot.isSimulation()) {
-      visionSim = new VisionSystemSim("visionsim");
+      visionSim = new VisionSystemSim("main");
       visionSim.addAprilTags(fieldAprilTags);
 
       for (Camera camera : cameras) {
@@ -60,6 +68,7 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     for (Camera camera : cameras) camera.update();
+    if (Robot.isSimulation()) visionSim.update(RobotContainer.swerveDrive.getSimPose());
   }
 
 
@@ -119,10 +128,6 @@ public class Vision extends SubsystemBase {
       return visionEst;
     }
 
-    private List<PhotonPipelineResult> getLatestResult() {
-      return camera.getAllUnreadResults();
-    }
-
     public PhotonCameraSim getSimCamera() {
       return simCamera;
     }
@@ -130,6 +135,7 @@ public class Vision extends SubsystemBase {
     public Transform3d getOffset() {
       return offset;
     }
+
     /// PHOTONVISION PROVIDED 
     /**
      * Calculates new standard deviations This algorithm is a heuristic that creates dynamic standard

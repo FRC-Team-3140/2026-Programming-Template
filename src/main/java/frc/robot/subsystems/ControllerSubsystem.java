@@ -8,11 +8,93 @@ public class ControllerSubsystem extends SubsystemBase {
   public static final Controller primaryController = new Controller(0);
   public static final Controller secondaryController = new Controller(1);
 
+  public static RobotMode currentMode = RobotMode.AUTO;
+
   public ControllerSubsystem() {}
 
 
+
+  // TODO: Update control scheme for the robot here
+  private static void universalControls() {
+  
+  }
+
+  static class ManualModeScheme implements ControlScheme {
+    public void init() {
+      System.out.println("Entering Manual Mode");
+    }
+
+    public void periodic() {
+
+    }
+
+    public void end() {
+      System.out.println("Exiting Manual Mode");
+    }
+  }
+
+  static class AutoModeScheme implements ControlScheme {
+    public void init() {
+      System.out.println("Entering Auto Mode");
+    }
+
+    public void periodic() {
+
+    }
+
+    public void end() {
+      System.out.println("Exiting Auto Mode");
+    }
+  }
+
+  public enum RobotMode {
+    MANUAL(new ManualModeScheme()),
+    AUTO(new AutoModeScheme());
+
+    Runnable init;
+    Runnable periodic;
+    Runnable end;
+
+    RobotMode(ControlScheme controlScheme) {
+      this.init = controlScheme::init;
+      this.periodic = controlScheme::periodic;
+      this.end = controlScheme::end;
+    }
+
+    void init() { init.run(); }
+    void execute() { periodic.run(); }
+    void end() { end.run(); }
+  }
+
+  private void checkModeSwitch() {
+    if (!(secondaryController.getLeftStickButton() && secondaryController.getRightStickButton())) return;
+
+    setMode(secondaryController.getRightBumperButton() ? RobotMode.MANUAL: currentMode);
+    setMode(secondaryController.getLeftBumperButton() ? RobotMode.AUTO : currentMode);
+
+  }
+
+  public void setMode(RobotMode mode) {
+    if (mode == currentMode) return;
+    currentMode = mode;
+
+  }
+
+  interface ControlScheme {
+    public default void init() {};
+    public default void periodic() {};
+    public default void end() {};
+  }
+
+
   @Override
-  public void periodic() {}
+  public void periodic() {
+    checkModeSwitch();
+
+    currentMode.execute();
+
+    universalControls();
+  }
 
   enum AxisMapping {
     LEFT_X(Constants.Config.useLinuxControlScheme ? 0 : 0),
