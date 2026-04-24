@@ -1,5 +1,8 @@
 package frc.robot;
 
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
@@ -49,6 +52,21 @@ public final class Constants {
     }
     public static final double maxSpeed = Units.feetToMeters(16); // m / s
     public static final double maxRot = 10; // rads / sec
+
+    public static class PathPlanner {
+      public static final PIDConstants transPID = new PIDConstants(5, 0, 0);
+      public static final PIDConstants rotPID = new PIDConstants(5, 0, 0);
+
+      public static final RobotConfig config;
+      static {
+        try {
+          config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+          System.err.println(e.getMessage());
+          throw new RuntimeException("Failed to load RobotConfig from GUI settings", e);
+        }
+      };
+    }
   }
 
   public static final class CurrentLimits {

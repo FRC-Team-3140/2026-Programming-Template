@@ -25,7 +25,6 @@ public class ControllerSubsystem extends SubsystemBase {
     }
 
     public void periodic() {
-
     }
 
     public void end() {
@@ -40,6 +39,9 @@ public class ControllerSubsystem extends SubsystemBase {
 
     public void periodic() {
 
+      if(primaryController.getXButtonPressed()) {
+        SwerveDrive.fieldRelative = !SwerveDrive.fieldRelative;
+      }
     }
 
     public void end() {
@@ -49,7 +51,7 @@ public class ControllerSubsystem extends SubsystemBase {
 
   public static class DefaultCommands {
     public static Command getSwerveDriveCommand() {
-      return RobotContainer.swerveDrive.run(()-> {
+      return RobotContainer.swerveDrive.run(()->{
         RobotContainer.swerveDrive.drive(
             primaryController.getLeftY(), 
             primaryController.getLeftX(),
@@ -88,9 +90,12 @@ public class ControllerSubsystem extends SubsystemBase {
   private void checkModeSwitch() {
     if (!(secondaryController.getLeftStickButton() && secondaryController.getRightStickButton())) return;
 
+    currentMode.end();
+
     setMode(secondaryController.getRightBumperButton() ? RobotMode.MANUAL: currentMode);
     setMode(secondaryController.getLeftBumperButton() ? RobotMode.AUTO : currentMode);
 
+    currentMode.init();
   }
 
   public void setMode(RobotMode mode) {
@@ -113,10 +118,6 @@ public class ControllerSubsystem extends SubsystemBase {
 
     universalControls();
   }
-
-
-
-
 
   /// Controller Mapping
 

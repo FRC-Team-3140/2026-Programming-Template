@@ -2,6 +2,8 @@ package frc.robot.subsystems.drivetrain;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.sim.SparkFlexSim;
@@ -26,12 +28,12 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.AnalogEncoder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.AnalogEncoderSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.subsystems.ControllerSubsystem;
 
 /* This class contains:
  *  SwerveDrive code
@@ -95,6 +97,20 @@ public class SwerveDrive extends SubsystemBase {
     simPoseEstimator = new SwerveDrivePoseEstimator(kinematics, swerveGyro.getRealSimRotation2d(), 
         new SwerveModulePosition[] { new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() }, 
         startingPose);
+
+
+    AutoBuilder.configure(
+        this::getPose, 
+        this::setPose, 
+        this::getRobotRelativeSpeeds,
+        (speeds, feedfoward) -> drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, false),
+        new PPHolonomicDriveController(Constants.SwerveDrive.PathPlanner.transPID, Constants.SwerveDrive.PathPlanner.rotPID),
+        Constants.SwerveDrive.PathPlanner.config,
+        () -> {
+          var alliance = DriverStation.getAlliance();
+          return alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red;
+        },
+        this);
   }
 
   @Override
@@ -128,7 +144,7 @@ public class SwerveDrive extends SubsystemBase {
           ChassisSpeeds.fromRobotRelativeSpeeds(
             xSpeed * Constants.SwerveDrive.maxSpeed, 
             ySpeed * Constants.SwerveDrive.maxSpeed, 
-            rotSpeed * Constants.SwerveDrive.maxRot, swerveGyro.getRotation2d()));
+            rotSpeed * Constants.SwerveDrive.maxRot, Rotation2d.fromDegrees(0)));
     }
   }
 
@@ -173,11 +189,22 @@ public class SwerveDrive extends SubsystemBase {
     };
   }
 
+  public ChassisSpeeds getRobotRelativeSpeeds() {
+    return kinematics.toChassisSpeeds(getStates());
+  }
+
   // This is the same advantagekit feature, but this allows me to see the robot's position in the networktables
   // This returns the pose that the robot thinks it is at
   @AutoLogOutput(key = "EstimatedPose")
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPosition();
+  }
+
+  public void setPose(Pose2d pose) {
+    swerveGyro.reset();
+    swerveGyro.setSimAngle(pose.getRotation().getDegrees());
+    swerveGyro.setAngleAdjustment(pose.getRotation().getDegrees());
+    poseEstimator.resetPose(pose);
   }
 
   // Same thing, but for the sim robot

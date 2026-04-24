@@ -4,8 +4,9 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import frc.robot.subsystems.drivetrain.SwerveDrive;
 import frc.robot.subsystems.drivetrain.Vision;
 import frc.robot.subsystems.ControllerSubsystem;
@@ -26,7 +27,6 @@ public class RobotContainer {
   public RobotContainer() {}
 
   public Command getAutonomousCommand() {
-    // An example command will be run in autonomous
-    return new PrintCommand("Placeholder Auto");
+    return new PathPlannerAuto("LCenterAuto");
   }
 }

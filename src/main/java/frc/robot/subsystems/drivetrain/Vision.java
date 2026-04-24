@@ -43,6 +43,7 @@ public class Vision extends SubsystemBase {
             Units.degreesToRadians(0), 
             Units.degreesToRadians(10), 
             Units.degreesToRadians(180-45)))),
+
     new Camera("Right", new Transform3d(
           Units.inchesToMeters(-10), 
           Units.inchesToMeters(-10), 
@@ -70,7 +71,6 @@ public class Vision extends SubsystemBase {
     for (Camera camera : cameras) camera.update();
     if (Robot.isSimulation()) visionSim.update(RobotContainer.swerveDrive.getSimPose());
   }
-
 
   public static class Camera {
     private Matrix<N3, N1> singleTagStdDevs = VecBuilder.fill(4, 4, Double.MAX_VALUE);
