@@ -68,10 +68,10 @@ public class SwerveDrive extends SubsystemBase {
   // 4 Swerve modules that handle powering the motors based on the math from kinematics
   // TODO: If motors are driving backwards, change the booleans to invert the drive motors
   public SwerveModule[] swerveModules = new SwerveModule[] {
-    new SwerveModule(Constants.MotorIDs.frontLeftDrive, Constants.MotorIDs.frontLeftTurn, Constants.SensorIDs.frontLeftTurnEncoder, false, Constants.SwerveDrive.Offsets.Rotation.frontLeft),
-        new SwerveModule(Constants.MotorIDs.frontRightDrive, Constants.MotorIDs.frontRightTurn, Constants.SensorIDs.frontRightTurnEncoder, false, Constants.SwerveDrive.Offsets.Rotation.frontRight),
-        new SwerveModule(Constants.MotorIDs.backLeftDrive, Constants.MotorIDs.backLeftTurn, Constants.SensorIDs.backLeftTurnEncoder, false, Constants.SwerveDrive.Offsets.Rotation.backLeft),
-        new SwerveModule(Constants.MotorIDs.backRightDrive, Constants.MotorIDs.backRightTurn, Constants.SensorIDs.backRightTurnEncoder, false, Constants.SwerveDrive.Offsets.Rotation.backRight),
+    new SwerveModule(Constants.MotorIDs.frontLeftDrive, Constants.MotorIDs.frontLeftTurn, Constants.SensorIDs.frontLeftTurnEncoder, false, false, Constants.SwerveDrive.Offsets.Rotation.frontLeft),
+        new SwerveModule(Constants.MotorIDs.frontRightDrive, Constants.MotorIDs.frontRightTurn, Constants.SensorIDs.frontRightTurnEncoder, false, false, Constants.SwerveDrive.Offsets.Rotation.frontRight),
+        new SwerveModule(Constants.MotorIDs.backLeftDrive, Constants.MotorIDs.backLeftTurn, Constants.SensorIDs.backLeftTurnEncoder, false, false, Constants.SwerveDrive.Offsets.Rotation.backLeft),
+        new SwerveModule(Constants.MotorIDs.backRightDrive, Constants.MotorIDs.backRightTurn, Constants.SensorIDs.backRightTurnEncoder, false, false, Constants.SwerveDrive.Offsets.Rotation.backRight),
   };
 
 
@@ -243,15 +243,14 @@ public class SwerveDrive extends SubsystemBase {
     public AnalogEncoderSim turnEncoderSim;
 
     // This PID calculats how to drive the turning motor to get to the angle setpoint
-    private PIDController turningPIDController = new PIDController(0.01, 0, 0.0002);
+    private PIDController turningPIDController = new PIDController(0.0001, 0, 0.0000);
 
     // These are conversion factors for different ratios
     private final double metersPerMotorRotation =
       2 * Math.PI * Units.inchesToMeters(2) * Constants.SwerveDrive.Ratios.driveRatio;
     private final double motorRotationsPerMinutePerMetersPerSecond = 60.0 / metersPerMotorRotation;
 
-
-    public SwerveModule(int driveMotorID, int turnMotorID, int turnEncoderID, boolean driveMotorInverted, double angleOffset) {
+    public SwerveModule(int driveMotorID, int turnMotorID, int turnEncoderID, boolean driveMotorInverted, boolean turnMotorInverted, double angleOffset) {
       // This creates the real motors
       driveMotor = new SparkFlex(driveMotorID, SparkFlex.MotorType.kBrushless);
       turnMotor = new SparkMax(turnMotorID, SparkMax.MotorType.kBrushless);
@@ -267,7 +266,7 @@ public class SwerveDrive extends SubsystemBase {
       config.idleMode(IdleMode.kBrake);
 
       // This is the config for the  turn motor. It shouldn't be inverted, and it has a configurable current limit defined in constants
-      config.inverted(false).smartCurrentLimit(Constants.CurrentLimits.SwerveDrive.turnMotorCurrentLimit);
+      config.inverted(turnMotorInverted).smartCurrentLimit(Constants.CurrentLimits.SwerveDrive.turnMotorCurrentLimit);
       // This applies the config to the turn motor
       turnMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
@@ -275,7 +274,8 @@ public class SwerveDrive extends SubsystemBase {
       // The drive motor uses the internal encoder, so we can use the PID controller that is built into the sparkmax
       // This is more accurate than an onboard PID controller, as it updates 1000x a second, the rio only updates 50 times a second.
       // There is also a feedForward that helps overcome static friction
-      config.closedLoop.p(0.00008).i(0).d(0).feedForward.sva(0.0, 0.0014, 0);
+      config.closedLoop.p(0).i(0).d(0).feedForward.sva(0.084706 * .712, 2.4433 * .712,
+            0.10133 * .712);
       // This is the config for the drive motor. It may be inverted, and it has a configurable current limit defined in constants
       config.inverted(driveMotorInverted).smartCurrentLimit(Constants.CurrentLimits.SwerveDrive.driveMotorCurrentLimit);
       // The internal encoder is updated with the conversion factor, so all reads of the encoder's position result in linear meters that the wheel would travel.
@@ -292,7 +292,7 @@ public class SwerveDrive extends SubsystemBase {
       turnEncoderSim = new AnalogEncoderSim(turnEncoder);
 
       // This lets the module's PID controlelr wrap around
-      turningPIDController.enableContinuousInput(-180, 180);
+      turningPIDController.enableContinuousInput(0, 360);
     }
 
     // This gets the distance traveled by the wheel, using the drive motor's built in encoder

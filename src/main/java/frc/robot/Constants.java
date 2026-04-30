@@ -12,21 +12,21 @@ public final class Constants {
   }
 
   public static final class MotorIDs {
-    public static final int frontLeftDrive = 1;
-    public static final int frontLeftTurn = 2;
-    public static final int frontRightDrive = 3;
-    public static final int frontRightTurn = 4;
-    public static final int backLeftDrive = 5;
-    public static final int backLeftTurn = 6;
-    public static final int backRightDrive = 7;
-    public static final int backRightTurn = 8;
+    public static final int frontLeftTurn = 1;
+    public static final int frontLeftDrive = 2;
+    public static final int frontRightTurn = 3;
+    public static final int frontRightDrive = 4;
+    public static final int backLeftTurn = 5;
+    public static final int backLeftDrive = 6;
+    public static final int backRightTurn = 7;
+    public static final int backRightDrive = 8;
   }
 
   public static final class SensorIDs {
-    public static final int frontLeftTurnEncoder = 0;
-    public static final int frontRightTurnEncoder = 1;
-    public static final int backLeftTurnEncoder = 2;
-    public static final int backRightTurnEncoder = 3;
+    public static final int frontLeftTurnEncoder = 2;
+    public static final int frontRightTurnEncoder = 0;
+    public static final int backLeftTurnEncoder = 3;
+    public static final int backRightTurnEncoder = 1;
   }
 
   public static final class SwerveDrive {
@@ -40,10 +40,10 @@ public final class Constants {
       }
       public static final class Rotation {
         // TODO: Update these angles to match the swerve drive's zeroed angle
-        public static final double frontLeft = 0.0;
-        public static final double frontRight = 0.0;
-        public static final double backLeft = 0.0;
-        public static final double backRight = 0.0;
+        public static final double frontLeft = 166.5;
+        public static final double frontRight = 109.3;
+        public static final double backLeft = 254.4;
+        public static final double backRight = 249;
       }
     }
     public static final class Ratios {

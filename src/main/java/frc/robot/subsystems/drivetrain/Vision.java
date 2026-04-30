@@ -35,7 +35,7 @@ public class Vision extends SubsystemBase {
 
   // TODO: Add Cameras with correct offsets
   public Camera[] cameras = new Camera[] {
-    new Camera("Left", new Transform3d(
+    new Camera("two", new Transform3d(
           Units.inchesToMeters(-10), 
           Units.inchesToMeters(10), 
           Units.inchesToMeters(10), 
@@ -44,7 +44,7 @@ public class Vision extends SubsystemBase {
             Units.degreesToRadians(10), 
             Units.degreesToRadians(180-45)))),
 
-    new Camera("Right", new Transform3d(
+    new Camera("one", new Transform3d(
           Units.inchesToMeters(-10), 
           Units.inchesToMeters(-10), 
           Units.inchesToMeters(10), 
